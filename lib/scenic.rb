@@ -1,4 +1,5 @@
 require "scenic/configuration"
+require "scenic/adapters/mysql"
 require "scenic/adapters/postgres"
 require "scenic/command_recorder"
 require "scenic/definition"

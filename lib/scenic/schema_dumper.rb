@@ -3,10 +3,29 @@ require "rails"
 module Scenic
   # @api private
   module SchemaDumper
+    # Rails 3.2 specific:
     def tables(stream)
-      super
+      @connection.tables.sort.each do |tbl|
+        next if ['schema_migrations', ignore_tables].flatten.any? do |ignored|
+          case ignored
+          when String; remove_prefix_and_suffix(tbl) == ignored
+          when Regexp; remove_prefix_and_suffix(tbl) =~ ignored
+          else
+            raise StandardError, 'ActiveRecord::SchemaDumper.ignore_tables accepts an array of String and / or Regexp values.'
+          end
+        end
+
+        next if is_view?(tbl)
+        table(tbl, stream)
+      end
+
       views(stream)
     end
+
+    # def tables(stream)
+    #   super
+    #   views(stream)
+    # end
 
     def views(stream)
       if dumpable_views_in_database.any?
@@ -20,6 +39,10 @@ module Scenic
     end
 
     private
+
+    def is_view?(tbl)
+      tbl.in? Scenic.database.views.map(&:name)
+    end
 
     def dumpable_views_in_database
       @dumpable_views_in_database ||= Scenic.database.views.reject do |view|
