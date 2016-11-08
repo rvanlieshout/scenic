@@ -44,6 +44,7 @@ module Scenic
       #
       # @return [void]
       def create_view(name, sql_definition)
+        execute "DROP VIEW IF EXISTS #{quote_table_name(name)};"
         execute "CREATE VIEW #{quote_table_name(name)} AS #{sql_definition};"
       end
 
